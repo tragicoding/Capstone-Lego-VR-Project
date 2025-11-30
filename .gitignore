@@ -1,0 +1,52 @@
+# ========== Unity ==========
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+[Mm]emoryCaptures/
+UserSettings/
+MemoryCaptures/
+
+# ========== Visual Studio / JetBrains ==========
+.vscode/
+.vs/
+.idea/
+*.sln
+*.csproj
+*.user
+*.pidb
+*.booproj
+*.svd
+
+# ========== Unity Cache ==========
+Assets/AssetStoreTools*
+*.unitypackage
+
+# ========== Crash Reports ==========
+sysinfo.txt
+
+# ========== OS files ==========
+.DS_Store
+Thumbs.db
+
+
+.waves/
+.plastic/
+plastic.workspace
+
+# ========== Build Artifacts ==========
+*.apk
+*.aab
+*.ipa
+*.exe
+*.app
+
+# ========== Logs ==========
+*.log
+
+# ========== 기타 ==========
+*.tmp
+*.bak
+*.swp
