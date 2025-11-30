@@ -1,0 +1,18 @@
+# === 핵심 수치/배열 연산 ===
+numpy==1.26.4              # 안정적인 마지막 1.x 버전 (여러 라이브러리와 호환성 좋음)
+
+# === OpenCV (ArUco 포함) ===
+opencv-contrib-python==4.10.0.84
+# -> contrib 모듈(aruco 포함)까지 들어있는 패키지
+# -> numpy 1.x와 함께 많이 쓰이는 조합
+
+# === 데이터 모델링 (옵션이지만 추천) ===
+pydantic==1.10.14
+# -> Python 3.10 완전 지원, V1 문법(FastAPI랑 같은 세대)이라 쓰기 편함 :contentReference[oaicite:1]{index=1}
+
+# === 디버깅/벤치마킹용 (필수는 아님) ===
+matplotlib==3.8.4          # 필요하면: 디버그용 플롯 그릴 때 사용
+psutil==5.9.8              # 필요하면: CPU/FPS 등의 성능 측정
+
+# === 테스트 ===
+pytest==8.3.3              # tests/ 폴더 유닛테스트용

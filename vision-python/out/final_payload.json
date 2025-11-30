@@ -1,0 +1,56 @@
+{
+  "objects": [
+    {
+      "id": 5,
+      "kind": "building",
+      "label": "Building_02",
+      "marker_board": {
+        "x": 22.97290120657966,
+        "y": 16.693320970474073
+      },
+      "marker_stud": {
+        "x": 23,
+        "y": 17
+      },
+      "marker_unity": {
+        "x": 44,
+        "y": 32
+      },
+      "spawn_stud": {
+        "x": 28,
+        "y": 17
+      },
+      "spawn_unity": {
+        "x": 54,
+        "y": 32
+      },
+      "yaw_deg": 90
+    },
+    {
+      "id": 4,
+      "kind": "building",
+      "label": "Building_01",
+      "marker_board": {
+        "x": 24.169970399778148,
+        "y": 22.984184409782593
+      },
+      "marker_stud": {
+        "x": 24,
+        "y": 23
+      },
+      "marker_unity": {
+        "x": 46,
+        "y": 44
+      },
+      "spawn_stud": {
+        "x": 29,
+        "y": 23
+      },
+      "spawn_unity": {
+        "x": 56,
+        "y": 44
+      },
+      "yaw_deg": 90
+    }
+  ]
+}
