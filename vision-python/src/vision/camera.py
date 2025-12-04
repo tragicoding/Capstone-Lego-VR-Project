@@ -2,12 +2,13 @@
 
 import cv2
 import numpy as np
-from ..config.camera_config import CAMERA_INDEX
 
+# 절대 import 사용
+from config.camera_config import CAMERA_INDEX
 
-# ---------------------------------------------------
-# 카메라 캘리브레이션 파일 로드 (있으면 사용)
-# ---------------------------------------------------
+# ============================================================
+# 카메라 캘리브레이션 로드
+# ============================================================
 try:
     CAMERA_MATRIX = np.load("camera_matrix.npy")
     DIST_COEFFS = np.load("dist_coeffs.npy")
@@ -39,7 +40,6 @@ def read_frame(cap):
     if not ok:
         return False, None
 
-    # Why? --> 안정화 효과 매우 큼
     frame = undistort_frame(frame)
     return True, frame
 
