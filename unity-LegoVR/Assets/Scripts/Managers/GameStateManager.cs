@@ -155,7 +155,7 @@ namespace LegoVR.Managers
             Vector3 pos = gridMapper.GridToWorld(gridX, gridY, 0f);
 
             // 🔥 회전 보정 적용
-            float baseYaw = obj.yaw_deg;             // Python 쪽 yaw (0/90/180/270)
+            float baseYaw = -obj.yaw_deg;             // Python 쪽 yaw (0/90/180/270)
             float offsetYaw = mapping.rotationOffsetY; // 프리팹별 보정값 (Inspector에서 설정)
             float finalYaw = baseYaw + offsetYaw;
 

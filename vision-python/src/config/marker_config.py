@@ -62,7 +62,7 @@ CORNER_ANCHOR_INDEX = {
 
 # 건물 마커 (ID 4~7) → 총 4개
 BUILDING_MARKERS = {
-    4: "Building_01",
+    9: "Building_01",
     5: "Building_02",
     6: "Building_03",
     7: "Building_04",
@@ -71,7 +71,7 @@ BUILDING_MARKERS = {
 
 # 캐릭터 마커 (ID 9~10) → 총 2개
 CHARACTER_MARKERS = {
-    9: "Character_01",
+    4: "Character_01",
     10: "Character_02",
     # 11 은 사용 안 함
 }

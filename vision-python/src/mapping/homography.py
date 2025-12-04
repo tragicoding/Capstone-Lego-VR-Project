@@ -3,7 +3,7 @@
 import numpy as np
 import cv2
 
-from ..config.marker_config import (
+from config.marker_config import (
     BOARD_CORNER_IDS,
     IDEAL_BOARD_CORNERS,
     CORNER_ANCHOR_INDEX,
