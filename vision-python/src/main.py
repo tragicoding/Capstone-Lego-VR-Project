@@ -6,21 +6,21 @@ import numpy as np
 import os
 import json
 
-from ..vision.camera import open_camera, read_frame, release_camera
-from ..vision.aruco_detector import (
+from vision.camera import open_camera, read_frame, release_camera
+from vision.aruco_detector import (
     detect_markers,
     extract_marker_info,
     draw_markers_with_centers,
 )
-from ..vision.grid_overlay import draw_grid
+from vision.grid_overlay import draw_grid
 
-from ..mapping.homography import (
+from mapping.homography import (
     compute_board_homography,
     image_to_board_point,
     smooth_homography,
 )
-from ..mapping.grid_mapping import BoardCoord, board_to_stud, board_to_unity
-from ..config.marker_config import (
+from mapping.grid_mapping import BoardCoord, board_to_stud, board_to_unity
+from config.marker_config import (
     BOARD_CORNER_IDS,
     BUILDING_MARKERS,
     CHARACTER_MARKERS,

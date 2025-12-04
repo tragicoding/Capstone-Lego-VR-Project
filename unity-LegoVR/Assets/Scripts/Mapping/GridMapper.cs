@@ -56,47 +56,50 @@ namespace LegoVR.Mapping
         /// <summary>
         /// Floor 메쉬 bounds를 이용해 cellSize와 (1,1) 셀 중심 좌표를 계산한다.
         /// </summary>
-        private void Initialize()
-        {
-            _initialized = false;
+private void Initialize()
+{
+    _initialized = false;
 
-            if (floor == null)
-            {
-                Debug.LogWarning("[GridMapper] Floor reference is not set.");
-                return;
-            }
+    if (floor == null)
+    {
+        Debug.LogWarning("[GridMapper] Floor reference is not set.");
+        return;
+    }
 
-            _floorRenderer = floor.GetComponentInChildren<Renderer>();
-            if (_floorRenderer == null)
-            {
-                Debug.LogWarning("[GridMapper] Floor has no Renderer.");
-                return;
-            }
+    _floorRenderer = floor.GetComponentInChildren<Renderer>();
+    if (_floorRenderer == null)
+    {
+        Debug.LogWarning("[GridMapper] Floor has no Renderer.");
+        return;
+    }
 
-            var bounds = _floorRenderer.bounds;
+    var bounds = _floorRenderer.bounds;
 
-            // 전체 월드 크기 → 칸 크기
-            _cellSizeX = bounds.size.x / Mathf.Max(1, gridWidth);
-            _cellSizeZ = bounds.size.z / Mathf.Max(1, gridHeight);
+    // 전체 월드 크기 → 칸 크기
+    _cellSizeX = bounds.size.x / Mathf.Max(1, gridWidth);
+    _cellSizeZ = bounds.size.z / Mathf.Max(1, gridHeight);
 
-            // Floor의 로컬 오른쪽/앞쪽 방향
-            _rightDir = floor.right.normalized;
-            _forwardDir = floor.forward.normalized;
+    // Floor의 로컬 오른쪽/앞쪽 방향
+    _rightDir = floor.right.normalized;
+    _forwardDir = floor.forward.normalized;
 
-            // bounds.min 은 "왼쪽-아래-뒤" 모서리.
-            // 거기서 오른쪽/앞쪽으로 half-cell 만큼 이동하면 (1,1) 셀의 중심.
-            Vector3 bottomLeftCorner = new Vector3(bounds.min.x, bounds.min.y, bounds.min.z);
+    // 🔥 Y는 바닥 '아래'가 아니라 '윗면' 기준으로 맞춰야 한다.
+    float topY = bounds.max.y;
 
-            _cell11Center =
-                bottomLeftCorner
-                + _rightDir * (_cellSizeX * 0.5f)
-                + _forwardDir * (_cellSizeZ * 0.5f);
+    // 왼쪽-아래-뒤 모서리의 X,Z + 윗면 Y
+    Vector3 bottomLeftCorner = new Vector3(bounds.min.x, topY, bounds.min.z);
 
-            _initialized = true;
+    _cell11Center =
+        bottomLeftCorner
+        + _rightDir * (_cellSizeX * 0.5f)
+        + _forwardDir * (_cellSizeZ * 0.5f);
 
-            Debug.Log($"[GridMapper] Initialized. cellSizeX={_cellSizeX}, cellSizeZ={_cellSizeZ}");
-            Debug.Log($"[GridMapper] (1,1) world pos = {_cell11Center}");
-        }
+    _initialized = true;
+
+    Debug.Log($"[GridMapper] Initialized. cellSizeX={_cellSizeX}, cellSizeZ={_cellSizeZ}");
+    Debug.Log($"[GridMapper] (1,1) world pos = {_cell11Center}");
+}
+
 
         /// <summary>
         /// 격자 좌표(1-based)를 Floor 기준 월드 좌표로 변환.
