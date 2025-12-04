@@ -20,6 +20,9 @@ namespace LegoVR.Managers
 
             [Tooltip("Hierarchy에 있는 실제 GameObject (예: Building_02)")]
             public GameObject target;
+
+            [Tooltip("이 빌딩 프리팹의 Y축 회전 보정 값 (deg)\n예: 기본이 옆을 보고 있으면 90, 180 등")]
+            public float rotationOffsetY = 0f;
         }
 
         [Header("References")]
@@ -29,8 +32,9 @@ namespace LegoVR.Managers
         [Header("Building Mappings")]
         public List<BuildingMapping> buildingMappings = new List<BuildingMapping>();
 
-        private readonly Dictionary<string, GameObject> _buildingDict =
-            new Dictionary<string, GameObject>();
+        // 🔥 이제 label → BuildingMapping 으로 저장 (기존: GameObject만 저장)
+        private readonly Dictionary<string, BuildingMapping> _buildingDict =
+            new Dictionary<string, BuildingMapping>();
 
         private void Awake()
         {
@@ -73,7 +77,7 @@ namespace LegoVR.Managers
                     continue;
                 }
 
-                _buildingDict[mapping.label] = mapping.target;
+                _buildingDict[mapping.label] = mapping;
             }
 
             Debug.Log($"[GameState] Building mappings initialized. count={_buildingDict.Count}");
@@ -130,24 +134,36 @@ namespace LegoVR.Managers
                 return;
             }
 
-            if (!_buildingDict.TryGetValue(obj.label, out GameObject go))
+            if (!_buildingDict.TryGetValue(obj.label, out BuildingMapping mapping))
             {
                 Debug.LogWarning($"[GameState] No building mapping for label: {obj.label}");
                 return;
             }
 
-            // Python에서 넘어온 격자 좌표 (1-based 가정)
+            GameObject go = mapping.target;
+            if (go == null)
+            {
+                Debug.LogWarning($"[GameState] Mapping target is null for label: {obj.label}");
+                return;
+            }
+
+            // Python에서 넘어온 격자 좌표 (spawn_unity.x, y)
             int gridX = Mathf.RoundToInt(obj.spawn_unity.x);
             int gridY = Mathf.RoundToInt(obj.spawn_unity.y);
 
             // Grid → World 좌표 변환
             Vector3 pos = gridMapper.GridToWorld(gridX, gridY, 0f);
 
-            Debug.Log($"[GameState] {obj.label} -> grid=({gridX},{gridY}), world={pos}");
+            // 🔥 회전 보정 적용
+            float baseYaw = obj.yaw_deg;             // Python 쪽 yaw (0/90/180/270)
+            float offsetYaw = mapping.rotationOffsetY; // 프리팹별 보정값 (Inspector에서 설정)
+            float finalYaw = baseYaw + offsetYaw;
+
+            Debug.Log($"[GameState] {obj.label} -> grid=({gridX},{gridY}), world={pos}, yaw={baseYaw} + offset={offsetYaw} => {finalYaw}");
 
             // 위치 & 회전 적용
             go.transform.position = pos;
-            go.transform.rotation = Quaternion.Euler(0f, obj.yaw_deg, 0f);
+            go.transform.rotation = Quaternion.Euler(0f, finalYaw, 0f);
         }
     }
 }
