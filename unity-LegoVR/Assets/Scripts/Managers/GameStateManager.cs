@@ -40,12 +40,18 @@ namespace LegoVR.Managers
         [Header("Random Characters (Spawn ONCE at Start)")]
         public List<RandomCharacterEntry> randomCharacters = new List<RandomCharacterEntry>();
 
-        public Transform floor;            // Floor Transform
+        [Tooltip("랜덤 스폰 기준이 될 Floor Transform")]
+        public Transform floor;            
+
+        [Tooltip("랜덤 캐릭터 Y 높이 (바닥에서 얼마나 띄울지)")]
         public float randomHeight = 0.1f;
+
+        [Tooltip("랜덤 위치 찾기 최대 시도 횟수")]
         public int maxAttempts = 200;
 
         [Header("XR Origin Character (1인칭)")]
-        public GameObject xrOrigin;        // XR Origin (payload 기반 배치)
+        [Tooltip("씬에 있는 XR Origin (XR Rig) 오브젝트")]
+        public GameObject xrOrigin;        
 
         // ================================================================
         //  Private Fields
@@ -53,7 +59,11 @@ namespace LegoVR.Managers
         private Dictionary<string, BuildingMapping> _buildingDict =
             new Dictionary<string, BuildingMapping>();
 
+        // 🔥 랜덤 캐릭터는 한 번만 스폰
         private bool _randomCharactersSpawned = false;
+
+        // 🔥 XR Origin도 payload 기준으로 한 번만 위치 세팅
+        private bool _xrOriginPlaced = false;
 
         // Floor bounds
         private float _minX, _maxX, _minZ, _maxZ;
@@ -191,23 +201,32 @@ namespace LegoVR.Managers
         }
 
         // ================================================================
-        //  XR Origin (Character) Placement
+        //  XR Origin (Character) Placement  — 한 번만!
         // ================================================================
         private void TryApplyXROrigin(ObjectPayload obj)
         {
-            if (xrOrigin == null)
+            // 이미 한 번 자리를 잡았으면 더 이상 덮어쓰지 않음
+            if (_xrOriginPlaced)
                 return;
+
+            if (xrOrigin == null)
+            {
+                Debug.LogWarning("[GameState] xrOrigin is not assigned.");
+                return;
+            }
 
             int gx = Mathf.RoundToInt(obj.spawn_unity.x);
             int gy = Mathf.RoundToInt(obj.spawn_unity.y);
 
             Vector3 pos = gridMapper.GridToWorld(gx, gy, 0f);
-            float yaw = -obj.yaw_deg;
+            float yaw = -obj.yaw_deg;   // 건물과 동일하게 부호 반전
 
             xrOrigin.transform.position = pos;
             xrOrigin.transform.rotation = Quaternion.Euler(0f, yaw, 0f);
 
-            Debug.Log($"[GameState] XR Origin placed at {pos}, yaw={yaw}");
+            _xrOriginPlaced = true;    // ✅ 이제부터는 XR 시스템이 알아서 움직이게 냅둠
+
+            Debug.Log($"[GameState] XR Origin placed at {pos}, yaw={yaw} (one-time)");
         }
 
         // ================================================================
