@@ -30,12 +30,12 @@ from vision.aruco_detector import (
 from config.marker_config import (
     BOARD_CORNER_IDS,
     BUILDING_MARKERS,
-    EXPECTED_BUILDING_IDS,
+    CHARACTER_MARKERS,
+    EXPECTED_OBJECT_IDS,   # 🔥 빌딩 5개 + 캐릭터 1개 전체
     IDEAL_BOARD_CORNERS,
     CORNER_ANCHOR_INDEX,
 )
 from mapping.grid_mapping import BoardCoord, board_to_stud
-from mapping.homography import compute_board_homography, image_to_board_point
 
 # ======================================================================
 # 상수 설정
@@ -47,7 +47,7 @@ CORNER_FREEZE_THRESHOLD = 1.0
 # 기준 마커가 안정적으로 유지되어야 하는 프레임 수
 CORNER_STABLE_FRAMES = 10
 
-# 건물 스폰 위치: 마커에서 스터드 몇 칸 떨어진 곳에 건물을 둘지
+# 건물/캐릭터 스폰 위치: 마커에서 스터드 몇 칸 떨어진 곳에 둘지
 SPAWN_OFFSET_STUDS = 5
 
 # 스터드 범위
@@ -88,6 +88,7 @@ def compute_snapped_yaw_deg(marker, H):
     p0 = (c[0][0], c[0][1])
     p1 = (c[1][0], c[1][1])
 
+    from mapping.homography import image_to_board_point  # 순환 import 피하려고 내부 import
     bx0, by0 = image_to_board_point(p0, H)
     bx1, by1 = image_to_board_point(p1, H)
 
@@ -105,9 +106,8 @@ def compute_snapped_yaw_deg(marker, H):
 def compute_spawn_stud_from_marker(stud_x, stud_y, yaw_snapped, offset=SPAWN_OFFSET_STUDS):
     """
     마커의 스터드 좌표(stud_x, stud_y)와 yaw_snapped(0/90/180/270)를 이용해서
-    '정자세의 아랫변(건물 앞면)' 방향으로 offset만큼 떨어진
-    건물 스폰 스터드 좌표를 계산.
-    (보드 좌표계 기준: X 오른쪽, Y 위쪽이라고 가정)
+    '정자세의 아랫변(앞면)' 방향으로 offset만큼 떨어진
+    스폰 스터드 좌표를 계산.
     """
     if yaw_snapped == 0:
         dx, dy = 0, -offset
@@ -140,6 +140,8 @@ def are_corners_stable(markers, H):
     if H is None:
         return False
 
+    from mapping.homography import image_to_board_point  # 내부 import
+
     corner_positions = {}
 
     for m in markers:
@@ -167,17 +169,31 @@ def are_corners_stable(markers, H):
     return True
 
 
+def classify_kind_and_label(mid: int):
+    """
+    마커 ID → (kind, label) 구분
+    kind: "building" 또는 "character"
+    """
+    if mid in BUILDING_MARKERS:
+        return "building", BUILDING_MARKERS[mid]
+    if mid in CHARACTER_MARKERS:
+        return "character", CHARACTER_MARKERS[mid]
+    return None, None
+
+
 # ======================================================================
-# 1단계: 카메라로 기준 마커/건물 마커 캡처 → 최종 payload 동결
+# 1단계: 카메라로 기준 마커/건물/캐릭터 마커 캡처 → 최종 payload 동결
 # ======================================================================
 
 def capture_and_freeze_payload():
     """
     1) 기준 마커 4개가 보드 좌표에서 안정되면 homography 고정
-    2) 그 이후에 건물 4개의 마커가 한 번 이상 모두 기록되면,
-       그 시점의 정보를 payload로 동결
+    2) 그 이후에 EXPECTED_OBJECT_IDS(빌딩 5개 + 캐릭터 1개)가
+       모두 한 번 이상 인식되면, 그 시점의 정보를 payload로 동결
     3) 카메라/창 모두 닫고, 동결된 payload 반환
     """
+    from mapping.homography import compute_board_homography, image_to_board_point
+
     print("[CAPTURE] Opening camera...")
     cap = open_camera()
     print("[CAPTURE] Camera opened. Press ESC to abort.")
@@ -188,9 +204,9 @@ def capture_and_freeze_payload():
 
     stable_frame_count = 0
 
-    # board_frozen 이후에만 건물 기록
-    seen_building_ids = set()
-    latest_building_info = {}  # {id: payload_obj}
+    # board_frozen 이후에만 빌딩/캐릭터 기록
+    seen_ids = set()              # EXPECTED_OBJECT_IDS 중 어떤 것들이 한 번이라도 인식됐는지
+    latest_object_info = {}       # {id: payload_obj}
 
     try:
         while True:
@@ -238,24 +254,27 @@ def capture_and_freeze_payload():
                     homography = H
                     board_frozen = True
                     print(f"[CAPTURE] Board homography frozen after {stable_frame_count} stable frames.")
-                continue  # 아직 건물 기록은 안 함
+                continue  # 아직 빌딩/캐릭터 기록은 안 함
 
             # ----------------------------------------------------------
-            # 2) homography가 고정된 이후: 건물 4개가 한 번씩 다 보일 때까지 기록
+            # 2) homography가 고정된 이후: 빌딩 5개 + 캐릭터 1개 기록
             # ----------------------------------------------------------
             if homography is None:
                 continue
 
-            # 이번 프레임에서 보이는 "기대하는" 건물 마커들
-            building_markers = [m for m in markers if m["id"] in EXPECTED_BUILDING_IDS]
-            building_ids_in_frame = {m["id"] for m in building_markers}
+            ids_in_frame = {m["id"] for m in markers}
+            interesting_ids = sorted(list(ids_in_frame.intersection(EXPECTED_OBJECT_IDS)))
+            if interesting_ids:
+                print("[CAPTURE] In this frame (buildings + character):", interesting_ids)
 
-            if building_ids_in_frame:
-                print("[CAPTURE] Buildings in this frame:", sorted(list(building_ids_in_frame)))
-
-            for m in building_markers:
+            for m in markers:
                 mid = m["id"]
-                label = BUILDING_MARKERS.get(mid, f"Building_{mid}")
+                if mid not in EXPECTED_OBJECT_IDS:
+                    continue
+
+                kind, label = classify_kind_and_label(mid)
+                if kind is None:
+                    continue
 
                 # 마커 중심 → 보드 좌표
                 cx, cy = m["center"]
@@ -272,34 +291,37 @@ def capture_and_freeze_payload():
                 )
                 spawn_ux, spawn_uy = stud_to_unity_grid(spawn_sx, spawn_sy)
 
+                # 필요하면 marker_unity도 계산 (현재 사용 안 해도 됨)
+                marker_ux, marker_uy = stud_to_unity_grid(stud_idx.x, stud_idx.y)
+
                 # Unity에서 쓰기 위한 ObjectPayload 형태로 저장
-                latest_building_info[mid] = {
+                latest_object_info[mid] = {
                     "id": mid,
-                    "kind": "building",   # Unity ObjectPayload.kind
+                    "kind": kind,          # "building" 또는 "character"
                     "label": label,
                     "marker_board": {"x": bx, "y": by},
                     "marker_stud": {"x": stud_idx.x, "y": stud_idx.y},
-                    "marker_unity": {"x": 0, "y": 0},  # 필요 없으면 0으로 두거나 계산 생략 가능
+                    "marker_unity": {"x": marker_ux, "y": marker_uy},
                     "spawn_stud": {"x": spawn_sx, "y": spawn_sy},
                     "spawn_unity": {"x": spawn_ux, "y": spawn_uy},
                     "yaw_deg": yaw_deg,
                 }
-                seen_building_ids.add(mid)
+                seen_ids.add(mid)
 
-            # EXPECTED_BUILDING_IDS 가 전부 한 번 이상 등장했으면 동결
-            if set(EXPECTED_BUILDING_IDS).issubset(seen_building_ids):
-                print("[CAPTURE] All 4 building markers have been seen at least once AFTER board stabilized.")
+            # 🔥 EXPECTED_OBJECT_IDS(빌딩 5개 + 캐릭터 1개) 전부 한 번 이상 인식됐는지 확인
+            if set(EXPECTED_OBJECT_IDS).issubset(seen_ids):
+                print("[CAPTURE] All expected objects (5 buildings + 1 character) have been seen at least once.")
 
                 # 정렬된 순서로 objects 배열 구성
                 objects_payload = [
-                    latest_building_info[mid] for mid in EXPECTED_BUILDING_IDS
-                    if mid in latest_building_info
+                    latest_object_info[mid] for mid in EXPECTED_OBJECT_IDS
+                    if mid in latest_object_info
                 ]
 
-                if len(objects_payload) != len(EXPECTED_BUILDING_IDS):
-                    print("[CAPTURE] Warning: some building IDs missing in latest_building_info.")
+                if len(objects_payload) != len(EXPECTED_OBJECT_IDS):
+                    print("[CAPTURE] Warning: some expected IDs missing in latest_object_info.")
                 else:
-                    print("[CAPTURE] All building infos are present.")
+                    print("[CAPTURE] All expected object infos are present.")
 
                 # Unity 쪽 PayloadRoot 구조에 맞게 루트 키는 "objects"
                 frozen_payload = {
@@ -366,7 +388,6 @@ def run_tcp_server_with_payload(payload):
                     print(f"[TCP] Send error: {e}")
                     running = False
 
-            # 너무 쓸데없이 바쁘게 돌지 않게 살짝 쉼
             time.sleep(0.001)
 
     except KeyboardInterrupt:
@@ -392,7 +413,7 @@ def run_tcp_server_with_payload(payload):
 def main():
     print("[MAIN] Lego VR tcp_server starting.")
     print("       1) 기준 마커 4개가 좌표로 안정되면 보드 좌표계 고정")
-    print("       2) 그 다음 건물 4개가 한 번 이상 기록되면 데이터 고정 + Unity로 송신")
+    print("       2) 그 다음 빌딩 5개 + 캐릭터 1개가 한 번 이상 기록되면 데이터 고정 + Unity로 송신")
 
     frozen_payload = capture_and_freeze_payload()
     if frozen_payload is None:

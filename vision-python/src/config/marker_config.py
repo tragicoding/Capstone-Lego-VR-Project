@@ -60,23 +60,19 @@ CORNER_ANCHOR_INDEX = {
 #  건물 & 캐릭터 마커
 # ----------------------------------
 
-# 건물 마커 (ID 4~7) → 총 4개
 BUILDING_MARKERS = {
-    9: "Building_01",
-    5: "Building_02",
-    6: "Building_03",
-    7: "Building_04",
-    # 8 은 사용 안 함
+    9:  "Building_01",
+    5:  "Building_02",
+    6:  "Building_03",
+    7:  "Building_04",
+    10: "Building_05",
 }
 
-# 캐릭터 마커 (ID 9~10) → 총 2개
 CHARACTER_MARKERS = {
-    4: "Character_01",
-    10: "Character_02",
-    # 11 은 사용 안 함
+    11: "XR Origin (XR Rig)",  # XR Origin (XR Rig)
 }
 
-# 최종 freeze 조건에 필요한 "반드시 있어야 하는" ID들
-EXPECTED_BUILDING_IDS = list(BUILDING_MARKERS.keys())   # [4,5,6,7]
-EXPECTED_CHARACTER_IDS = list(CHARACTER_MARKERS.keys()) # [9,10]
-EXPECTED_OBJECT_IDS = EXPECTED_BUILDING_IDS + EXPECTED_CHARACTER_IDS
+EXPECTED_BUILDING_IDS   = list(BUILDING_MARKERS.keys())
+EXPECTED_CHARACTER_IDS  = list(CHARACTER_MARKERS.keys())
+EXPECTED_OBJECT_IDS     = EXPECTED_BUILDING_IDS + EXPECTED_CHARACTER_IDS
+
