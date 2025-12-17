@@ -336,7 +336,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: e9fe34d4df653834596b1e305206e019, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 110.619995
+      value: 109.58139
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: e9fe34d4df653834596b1e305206e019, type: 3}
       propertyPath: m_LocalPosition.y
@@ -344,11 +344,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: e9fe34d4df653834596b1e305206e019, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 41.91
+      value: 133.35503
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: e9fe34d4df653834596b1e305206e019, type: 3}
       propertyPath: m_LocalRotation.w
-      value: 0.7059127
+      value: 0.996177
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: e9fe34d4df653834596b1e305206e019, type: 3}
       propertyPath: m_LocalRotation.x
@@ -356,7 +356,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: e9fe34d4df653834596b1e305206e019, type: 3}
       propertyPath: m_LocalRotation.y
-      value: -0.70829886
+      value: 0.08735809
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: e9fe34d4df653834596b1e305206e019, type: 3}
       propertyPath: m_LocalRotation.z
@@ -368,7 +368,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: e9fe34d4df653834596b1e305206e019, type: 3}
       propertyPath: m_LocalEulerAnglesHint.y
-      value: -90.193
+      value: 10.023
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: e9fe34d4df653834596b1e305206e019, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
@@ -442,7 +442,7 @@ NavMeshAgent:
   m_Enabled: 1
   m_AgentTypeID: 0
   m_Radius: 20
-  m_Speed: 8
+  m_Speed: 7
   m_Acceleration: 8
   avoidancePriority: 50
   m_AngularSpeed: 120
